@@ -1,10 +1,4 @@
-configuration/*
 migrations/*
-scripts/*
 src/*
 target/*
 tests/*
-Cargo.lock
-Cargo.toml
-Dockerfile
-README.md
