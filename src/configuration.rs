@@ -34,12 +34,11 @@ pub fn get_configuration() -> Result<Settings, config::ConfigError> {
         .expect("Failed to determine the current directory");
     let configuration_directory = base_path.join("configuration");
 
-    let enviornment: Environment = std::env::var("APP_ENVIORNMENT")
+    let environment: Environment = std::env::var("APP_ENVIRONMENT")
         .unwrap_or_else(|_| "local".into())
         .try_into()
         .expect("Failed to parse APP_ENVIORNMENT");
-    let environment_filename = format!("{}.yaml", enviornment.as_str());
-
+    let environment_filename = format!("{}.yaml", environment.as_str());
 
     // Initialize the configuration reader
     let settings = config::Config::builder()
@@ -75,6 +74,7 @@ impl TryFrom<String> for Environment {
     type Error = String;
 
     fn try_from(s: String) -> Result<Self, Self::Error> {
+        println!("environment is set to: {}", s);
         match s.to_lowercase().as_str() {
             "local" => Ok(Self::Local),
             "production" => Ok(Self::Production),
