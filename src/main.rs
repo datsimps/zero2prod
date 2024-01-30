@@ -20,4 +20,4 @@ async fn main() -> std::io::Result<()> {
     Ok(())
 }
 
-//check page 140 with the build --tag zero2prod
+// all up to date so far, work on the subscriber struct
