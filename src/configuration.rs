@@ -65,6 +65,7 @@ pub fn get_configuration() -> Result<Settings, config::ConfigError> {
             .separator("__")
         )
         .build()?;
+    
     // convert into our settings struct
     settings.try_deserialize::<Settings>()
 }
