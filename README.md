@@ -3,9 +3,9 @@
 ## The Project
 This is an email subscription progam fulfilling a few needs:
     
--As a user:
-&nbsp;&nbsp;-subscriber to a newsletter
-&nbsp;&nbsp;-recieve the newsletter
+-As a user:\
+&nbsp;&nbsp;-subscriber to a newsletter\
+&nbsp;&nbsp;-recieve the newsletter\
 &nbsp;&nbsp;-unsubscribe from the newsletter whenever
 
 -As the admin: \
