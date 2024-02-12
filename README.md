@@ -4,20 +4,15 @@
 This is an email subscription progam fulfilling a few needs:
     
 -As a user:
+&nbsp;&nbsp;-subscriber to a newsletter
+&nbsp;&nbsp;-recieve the newsletter
+&nbsp;&nbsp;-unsubscribe from the newsletter whenever
 
--subscriber to a newsletter
+-As the admin: \
+&nbsp;&nbsp;-confirm users [^1]\
+&nbsp;&nbsp;-send a newsletter\
+&nbsp;&nbsp;-minimize downtime of service [^2]
 
--recieve the newsletter
-
--unsubscribe from the newsletter whenever
-
--As the admin:
-
--confirm users
-
--send a newsletter
-
--minimize downtime of service 
 ## The Tools
 Language used: Rust
 
