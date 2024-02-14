@@ -1,5 +1,4 @@
 use crate::helpers::spawn_app;
-use reqwest::Url;
 use wiremock::{ResponseTemplate, Mock};
 use wiremock::matchers::{path, method};
 
@@ -48,7 +47,7 @@ async fn clicking_on_the_confirmation_link_confirms_a_subscriber() {
     let confirmation_links = app.get_confirmation_links(&email_request);
 
     // Act
-    let response = reqwest::get(confirmation_links.html)
+    let _response = reqwest::get(confirmation_links.html)
         .await
         .unwrap();
 
