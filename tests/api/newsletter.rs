@@ -25,12 +25,8 @@ async fn newsletters_are_not_delivered_to_unconfirmed_subscribers() {
         }
     });
 
-    let response = reqwest::Client::new()
-        .post(&format!("{}/newsletters", &app.address))
-        .json(&newsletter_request_body)
-        .send()
-        .await
-        .expect("Failed to execute request.");
+    let response = app.post_newsletters(newsletter_request_body).await;
+
 
     // Assert
     assert_eq!(response.status().as_u16(), 200);
@@ -59,17 +55,53 @@ async fn newsletters_are_delivered_to_confirmed_subscribers() {
         }
     });
 
-    let response = reqwest::Client::new()
-        .post(&format!("{}/newsletters", &app.address))
-        .json(&newsletter_request_body)
-        .send()
-        .await
-        .expect("Failed to execute request.");
-
+    
+    let response = app.post_newsletters(newsletter_request_body).await;
+    
+    println!("response: {}", &response.status().as_u16());
     // Assert
     assert_eq!(response.status().as_u16(), 200);
 }
 
+
+
+#[tokio::test]
+async fn newsletters_return_400_for_invalid_data() {
+    // Arrange
+    let app = spawn_app().await;
+    let test_cases = vec![
+        (
+            serde_json::json!({
+                "content": {
+                    "text": "Newsletter body as plain text",
+                    "html": "<p>Newsletter body as HTML</p>",
+                }
+            }),
+            "missing title",
+        ),
+        (
+            serde_json::json!({"title": "Newsletter!"}),
+            "missing content",
+        ),
+    ];
+
+    for (invalid_body, error_message) in test_cases {
+        let response = reqwest::Client::new()
+            .post(&format!("{}/newsletters", &app.address))
+            .json(&invalid_body)
+            .send()
+            .await
+            .expect("Failed to execute request.");
+
+        // Assert
+        assert_eq!(
+            400,
+            response.status().as_u16(),
+            "The API did not fail with 400 Bad Request when payload was {}.",
+            error_message
+            );
+    }
+}
 
 async fn create_unconfirmed_subscriber(app: &TestApp) -> ConfirmationLinks{
     let body = "name=le%20guin&email=ursula_le_guin%40gmail.com";
@@ -98,8 +130,8 @@ async fn create_unconfirmed_subscriber(app: &TestApp) -> ConfirmationLinks{
 
 
 async fn create_confirmed_subscriber(app: &TestApp) {
-    let confirmation_link = create_unconfirmed_subscriber(app).await;
-    reqwest::get(confirmation_link.html)
+    let confirmation_link = create_unconfirmed_subscriber(app).await.html;
+    reqwest::get(confirmation_link)
         .await
         .unwrap()
         .error_for_status()
