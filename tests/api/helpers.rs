@@ -84,13 +84,21 @@ impl TestApp {
             plain_text,
         }
     }
-
+    pub async fn test_user(&self) -> (String, String) {
+        let row = sqlx::query!("SELECT username, password FROM users LIMIT 1",)
+            .fetch_one(&self.db_pool)
+            .await
+            .expect("Failed to create test users.");
+        (row.username, row.password)
+    }
     pub async fn post_newsletters(
         &self,
         body: serde_json::Value
     ) -> reqwest::Response {
+        let (username, password) = self.test_user().await;
         reqwest::Client::new()
             .post(&format!("{}/newsletters", &self.address))
+            .basic_auth(username, Some(password))
             .json(&body)
             .send()
             .await
@@ -120,6 +128,19 @@ pub async fn configure_database(config: &DatabaseSettings) -> PgPool {
     connection_pool
 }
 
+async fn add_test_user(pool: &PgPool) {
+    sqlx::query!(
+        "INSERT INTO users (user_id, username, password)
+        VALUES ($1, $2, $3)",
+        Uuid::new_v4(),
+        Uuid::new_v4().to_string(),
+        Uuid::new_v4().to_string(),
+    )
+        .execute(pool)
+        .await
+        .expect("Failed to create test users.");
+}
+
 pub async fn spawn_app() -> TestApp {
     Lazy::force(&TRACING);
     // Start a mock server to stand in for Postmark API
@@ -144,12 +165,15 @@ pub async fn spawn_app() -> TestApp {
     let application_port = application.port();
     // Launch application as a background task
     let _ = tokio::spawn(application.run_until_stopped());
- 
-    TestApp {
+
+    let test_app = TestApp {
         address: format!("http://localhost:{}", application_port),
         db_pool: get_connection_pool(&configuration.database),
         port: application_port,
         email_server,
-    }
+    };
+
+    add_test_user(&test_app.db_pool).await;
+    test_app
 }
 
