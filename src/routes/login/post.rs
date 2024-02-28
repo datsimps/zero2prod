@@ -7,6 +7,7 @@ use crate::routes::error_chain_fmt;
 use crate::startup::HmacSecret;
 use sqlx::PgPool;
 use hmac::{Hmac, Mac};
+use actix_web_flash_messages::FlashMessage;
 
 #[derive(serde::Deserialize)]
 pub struct FormData {
@@ -39,6 +40,8 @@ pub async fn login(
                 AuthError::InvalidCredentials(_) => LoginError::AuthError(e.into()),
                 AuthError::UnexpectedError(_) => LoginError::UnexpectedError(e.into()),
             };
+            FlashMessage::error(e.to_string()).send();
+
             let query_string = format!(
                 "error={}",
                 urlencoding::Encoded::new(e.to_string())

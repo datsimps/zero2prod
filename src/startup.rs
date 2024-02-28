@@ -9,6 +9,10 @@ use crate::configuration::{Settings, DatabaseSettings};
 use crate::routes::{home, login_form, login};
 use sqlx::postgres::PgPoolOptions;
 use secrecy::Secret;
+use actix_web_flash_messages::FlashMessagesFramework;
+use actix_web_flash_messages::storage::{FlashMessageStore, CookieMessageStore};
+use actix_web::cookie::Key;
+use secrecy::ExposeSecret;
 
 // Application struct to wrap actix_web server
 pub struct Application {
@@ -71,8 +75,14 @@ pub fn run(
     let connection_pool = web::Data::new(connection_pool);
     let email_client = web::Data::new(email_client);
     let base_url = web::Data::new(ApplicationBaseUrl(base_url));
+    println!("secret: {}", &hmac_secret.expose_secret());
+    let message_store = CookieMessageStore::builder(
+           Key::from(hmac_secret.expose_secret().as_bytes()) 
+        ).build();
+    let message_framework = FlashMessagesFramework::builder(message_store).build();
     let server = HttpServer::new(move || {
         App::new()
+            .wrap(message_framework.clone())
             .wrap(TracingLogger::default())
             .route("/health_check", web::get().to(health_check))
             .route("/subscriptions", web::post().to(subscribe))
