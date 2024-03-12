@@ -90,7 +90,6 @@ impl TryFrom<String> for Environment {
     type Error = String;
 
     fn try_from(s: String) -> Result<Self, Self::Error> {
-        println!("environment is set to: {}", s);
         match s.to_lowercase().as_str() {
             "local" => Ok(Self::Local),
             "production" => Ok(Self::Production),

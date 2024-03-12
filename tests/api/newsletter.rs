@@ -32,7 +32,6 @@ async fn invalid_password_is_rejected() {
     .expect("Failed to execute request.");
 
     // Assert
-    println!("status: {}", &response.status());
     assert_eq!(401, response.status().as_u16());
     assert_eq!(
         r#"Basic realm="publish""#,
@@ -95,9 +94,7 @@ async fn newsletters_are_not_delivered_to_unconfirmed_subscribers() {
         }
     });
 
-    println!("{}", &newsletter_request_body);
     let response = app.post_publish_newsletter(&newsletter_request_body).await;
-    println!("response: {:?}", &response);
 
     // Assert
     assert_eq!(response.status().as_u16(), 200);
