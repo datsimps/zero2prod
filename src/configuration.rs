@@ -6,12 +6,14 @@ use sqlx::postgres::PgSslMode;
 use serde_aux::field_attributes::deserialize_number_from_string;
 
 use crate::domain::SubscriberEmail;
+use crate::email_client::EmailClient;
 
 #[derive(serde::Deserialize, Clone, Debug)]
 pub struct Settings {
     pub database: DatabaseSettings,
     pub application: ApplicationSettings,
     pub email_client: EmailClientSettings,
+    pub redis_uri: Secret<String>
 }
 
 #[derive(serde::Deserialize, Clone, Debug)]
@@ -122,6 +124,16 @@ impl DatabaseSettings {
 }
 
 impl EmailClientSettings {
+    pub fn client(self) -> EmailClient {
+        let sender_email = self.sender().expect("Invalid sender email address.");
+        let timeout = self.timeout();
+        EmailClient::new(
+            self.base_url,
+            sender_email,
+            self.authorization_token,
+            timeout,
+        )
+    }
     pub fn sender(&self) -> Result<SubscriberEmail, String> {
         SubscriberEmail::parse(self.sender_email.clone())
     }

@@ -1,5 +1,4 @@
-use actix_web::{HttpResponse, http::header::ContentType, HttpRequest};
-use actix_web::cookie::{Cookie, time::Duration};
+use actix_web::{HttpResponse, http::header::ContentType};
 use actix_web_flash_messages::{IncomingFlashMessages, Level};
 use std::fmt::Write;
 

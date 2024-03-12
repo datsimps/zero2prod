@@ -95,8 +95,9 @@ async fn newsletters_are_not_delivered_to_unconfirmed_subscribers() {
         }
     });
 
-    let response = app.post_newsletters(newsletter_request_body).await;
-
+    println!("{}", &newsletter_request_body);
+    let response = app.post_publish_newsletter(&newsletter_request_body).await;
+    println!("response: {:?}", &response);
 
     // Assert
     assert_eq!(response.status().as_u16(), 200);
@@ -115,8 +116,7 @@ async fn newsletters_are_delivered_to_confirmed_subscribers() {
         .mount(&app.email_server)
         .await;
 
-    // Act
-    //   test newsletter
+    // Act test newsletter
     let newsletter_request_body = serde_json::json!({
         "title": "Newsletter title",
         "content": {
@@ -126,7 +126,7 @@ async fn newsletters_are_delivered_to_confirmed_subscribers() {
     });
 
     
-    let response = app.post_newsletters(newsletter_request_body).await;
+    let response = app.post_publish_newsletter(&newsletter_request_body).await;
     
     println!("response: {}", &response.status().as_u16());
     // Assert
