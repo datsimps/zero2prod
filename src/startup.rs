@@ -1,4 +1,8 @@
-use crate::routes::{health_check, subscribe, confirm, publish_newsletter};
+use crate::routes::{health_check, subscribe, confirm,
+                    home, login_form, login, log_out,
+                    admin_dashboard, change_password, change_password_form,
+                    publish_newsletter, publish_newsletter_form,
+                    };
 use actix_web::{web, App, HttpServer};
 use actix_web::dev::Server;
 use sqlx::PgPool;
@@ -6,7 +10,6 @@ use std::net::TcpListener;
 use tracing_actix_web::TracingLogger;
 use crate::email_client::EmailClient;
 use crate::configuration::{Settings, DatabaseSettings};
-use crate::routes::{home, login_form, login};
 use sqlx::postgres::PgPoolOptions;
 use secrecy::{Secret, ExposeSecret};
 use actix_web_flash_messages::FlashMessagesFramework;
@@ -14,8 +17,8 @@ use actix_web_flash_messages::storage::CookieMessageStore;
 use actix_web::cookie::Key;
 use actix_session::SessionMiddleware;
 use actix_session::storage::RedisSessionStore;
-use crate::routes::admin_dashboard;
-use crate::routes::{change_password, change_password_form};
+use crate::authentication::reject_anonymous_users;
+use actix_web_lab::middleware::from_fn;
 
 // Application struct to wrap actix_web server
 pub struct Application {
@@ -78,7 +81,7 @@ pub async fn run(
     base_url: String,
     hmac_secret: Secret<String>,
     redis_uri: Secret<String>
-    ) -> Result<Server, anyhow::Error> {
+) -> Result<Server, anyhow::Error> {
     let connection_pool = web::Data::new(connection_pool);
     let email_client = web::Data::new(email_client);
     let base_url = web::Data::new(ApplicationBaseUrl(base_url));
@@ -91,16 +94,23 @@ pub async fn run(
             .wrap(message_framework.clone())
             .wrap(SessionMiddleware::new(redis_store.clone(), secret_key.clone()))
             .wrap(TracingLogger::default())
+            .route("/", web::get().to(home))
             .route("/health_check", web::get().to(health_check))
             .route("/subscriptions", web::post().to(subscribe))
             .route("/subscriptions/confirm", web::get().to(confirm))
             .route("/newsletters", web::post().to(publish_newsletter))
             .route("/login", web::get().to(login_form))
             .route("/login", web::post().to(login))
-            .route("/admin/dashboard", web::get().to(admin_dashboard))
-            .route("/admin/password", web::get().to(change_password_form))
-            .route("/admin/password", web::post().to(change_password))
-            .route("/", web::get().to(home))
+            .service(
+                web::scope("/admin")
+                    .wrap(from_fn(reject_anonymous_users))
+                    .route("/dashboard", web::get().to(admin_dashboard))
+                    .route("/newsletters", web::get().to(publish_newsletter_form))
+                    .route("/newsletters", web::post().to(publish_newsletter))
+                    .route("/password", web::get().to(change_password_form))
+                    .route("/password", web::post().to(change_password))
+                    .route("/logout", web::post().to(log_out))
+            )
             .app_data(connection_pool.clone())
             .app_data(email_client.clone())
             .app_data(base_url.clone())

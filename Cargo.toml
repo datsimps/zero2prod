@@ -46,7 +46,6 @@ hmac = { version = "0.12", features = ["std"] }
 sha2 = "0.10"
 hex = "0.4"
 
-
 [dev-dependencies]
 once_cell = "1.7.2"
 claims = "0.7"
