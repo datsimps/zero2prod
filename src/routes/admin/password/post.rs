@@ -17,19 +17,6 @@ pub struct FormData {
 }
 
 
-async fn reject_anonymous_users(
-    session: TypedSession,
-) -> Result<Uuid, actix_web::Error> {
-    match session.get_user_id().map_err(e500)? {
-        Some(user_id) => Ok(user_id),
-        None => {
-            let response = see_other("/login");
-            let e = anyhow::anyhow!("The user has not been logged in.");
-            Err(InternalError::from_response(e, response).into())
-        }
-    }
-}
-
 pub async fn change_password(
     form: web::Form<FormData>,
     pool: web::Data<PgPool>,
